@@ -1,260 +1,199 @@
-# ResolveDBBackup
+<div align="center">
 
-原生 SwiftUI 菜单栏 App（macOS 14+，通用二进制：Intel 与 Apple 芯片均可运行），作为 PostgreSQL 客户端对 DaVinci Resolve 的 network 数据库做**自动 / 定时逻辑备份**（`pg_dump -F c --blobs`，自定义格式单文件）；**v1.2 起同时支持达芬奇本地数据库（磁盘文件夹 + SQLite）的整目录 zip 快照备份**。技术基线为行业事实标准 Seth Goldin 方案，以 SwiftUI GUI + 用户级 LaunchAgent 取代旧 shell 脚本 + 系统级 launchd。**v1.3**：三扫描按钮改名排序、局域网扫描支持停止 / 关闭、连接测试改名、备份任务支持打开 / 自定义路径、间隔改分钟、历史右键 Finder。**v1.4**：默认备份根目录改 `DaVinci Database Auto Backup`、保留份数机制回归（默认 100、0 = 不限）、两个扫描按钮改名 "共享"、手动添加自动填本机网卡 IP、开机自启默认开启。**v1.4.1**：修复钥匙串批量弹窗（不再启动预读密码，新条目 ACL 允许所有应用）。**v1.5**：扫描按钮改名「扫描本机共享数据库」、添加菜单拆三项（本地 / 本机共享 / 局域网共享）、菜单栏去掉设置、设置新增全局默认备份路径（外接硬盘）、配置 JSON 自动实时保存到备份根目录、开机自启对现有配置也默认开。**v1.6**：连接列表三分类（本地 / 本机共享 / 局域网共享）、历史右键找不到文件给提示、备份引擎一键自动检测 / 选择 pg\_dump、界面显示版本号与作者（曾定光调色 Keylight）、设置页新增免责声明。**v1.6.1**：免责声明重写为严谨措辞（排除默示担保 / 损害开放列举 / 第三方工具免责）、主界面底部版本与作者字号加大；版本号策略改为修订号递增（1.6.1 → 1.6.2 …）。**v1.6.2**：新增达芬奇关联 App 图标（黑底彩虹渐变边框 + 三层数据库柱 + 白色环形同步箭头）；菜单栏图标改为达芬奇三水滴样式（替换原硬盘图标）；连接三类 Section 间距加大；底部软件名 / 版本 / 作者字号再加大并改拼音署名 Zengdingguang Keylight；设置页免责声明字号加大到正文级；pg\_dump 路径框套用深色输入框样式。**v1.6.3**：启动不再自动扫描数据库（避免一打开就弹钥匙串授权窗，改为用户手动点「自动扫描数据库」按钮触发，仅扫本机共享 + 本地库）；「手动添加」按钮改名并修复双加号；移除设置里的～/.pgpass 开关；免责声明明暗度对齐作者项。**v1.6.4**：添加本地数据库默认填达芬奇官方本地库目录；局域网添加主机括号提示「改 IP 地址末位可指向局域网其他主机」；启动显示主窗口（手动打开 / 首次安装弹出主界面，开机自启不弹，用进程启动时间与系统开机时间差区分）；备份任务区新增「立即备份全部」按钮；App 图标替换为用户上传黑白剪影（已去水印）；设置页配置区块加说明 + 「打开」按钮（Finder 定位配置文件）；**菜单栏图标回退为 v1.6.1 默认磁盘黑白线稿（SF Symbol externaldrive.badge.checkmark）**——v1.6.2 起自定义 PNG 图标在菜单栏不显示（SwiftUI 命名图片在无 asset catalog 的 SPM 工程里加载失效，PNG 文件本身正常，实测 NSImage 可渲染出内容），故回退 SF Symbol 保证可靠显示。**v1.6.5**：**备份机制改为全局达芬奇式三层时间桶**—— 备份任务页顶部新增「全局备份机制」设置（默认 间隔 10 分钟 / 保留最近 1 小时 / 保留最近 1 天），不再按库单独设间隔 / 保留；**全局备份位置**取代设置页「默认备份位置」与每库独立路径，所有库统一存到一个目录（建议外接硬盘）自动分级；设置页配置按钮改名「在 Finder 中显示」；作者改「调色师 zengdingguang」；软件命名「水螅 ResolveBackup」；手动打开主窗口时置顶显示在最前面。**v1.6.6**：**备份机制改「时间机器式」**（不再用达芬奇三层）—— 全局仅「间隔（分钟）」一个参数（默认 10），保留规则固定：最近 24 小时内的备份全部保留、超过 24 小时每天只保留最后 1 份；全局机制区按钮改名「保存设置」/「在 Finder 中打开」；备份任务卡片去掉「下次运行时间」，按钮一排（启用→打开路径→立即备份→删除任务）；所有说明类小字统一调大（.callout）。**v1.6.7**：**连接状态指示灯**—— 每个数据库「连接测试」前加圆形状态灯，连接正常 = 绿、断开 / 失联 = 红、本地库恒绿；实时监测（NWPathMonitor 监听 WiFi / 以太网接口，断网瞬间变红）+ 每 60 秒并发轻量探测（SELECT 1）确认数据库可达；软件名 + 版本移到主窗口最上方居中，底部右侧保留作者；「立即备份全部」移到全局机制区「保存设置」右边；删除设置页「保留策略」Section；「全局备份机制」标题加大并移到灰色框外部上方。**v1.6.8**：全局备份位置默认路径设为 `~/DaVinci Database Auto Backup`；软件名 + 版本号置于窗口最上方、四个选项卡移到其下方；设置页新增「打赏」区块（配置与关于之间，微信收款二维码 + 文案「别等数据库炸了才想起我，扫码赏点，让我有电继续给你站岗」）；全局备份机制区「保存设置」「立即备份全部」紧跟间隔输入框靠左排列。**v1.6.9**：顶部四个选项卡字体加大（title3）；窗口标题栏文字去掉；设置页「打赏」区块移到「备份引擎」上方（设置页最顶部）；整体代码优化精简（RetentionManager 三策略提取公共辅助去重、移除 ConnectionScanner 死代码 debug 参数、AppState 提取工具目录计算属性与简化 setJobEnabled、更新过时文案），功能与 98 项单测全部通过不受影响。**v1.7.0**：4 种扫描窗口的「重新扫描/开始扫描」按钮与「添加所选」统一为蓝色圆角同款（更醒目）；App 图标更换为水螅剪影图（菜单栏图标保持磁盘线稿 SF Symbol 不变）；主窗口底部「作者」移到左侧，右侧新增「使用问题反馈：402481025@qq.com」。**v1.7.1**：改为**双架构通用二进制（Universal，arm64 + x86_64）**——分别编译两种架构后用 lipo 合并，Intel Mac 与 Apple Silicon 均可直接运行；make-app.sh 改为双架构构建流程，界面版本号 v1.7.1 (28)。**v1.7.2**：App 图标源图更换为用户重新上传的无水印水螅剪影（工程 Assets/icons/new_app_icon.png 同步更新；经校验该图与 v1.7.0 打包图标内容一致，均无水印），版本号 v1.7.2 (29)。**v1.7.3**：局域网共享数据库扫描窗口下方新增提示「局域网扫描较慢，如已知目标主机 IP，可返回主界面手动添加。」（提示用户局域网全扫较慢、可改手动添加，字号 body）；「添加本机共享数据库」主机字段去掉括号说明（仅「主机」，默认 127.0.0.1）；「添加局域网共享数据库」主机字段括号精简为「改 IP 末位可指向局域网主机」（一行），版本号 v1.7.3 (30)。**v1.7.4**：双击已运行的 App 也能打开主界面——单实例化（重复启动的新进程自动退出）+ 处理 macOS reopen 事件（applicationShouldHandleReopen）与文件信号兜底，「无论何时双击都能打开主控制面板」；「添加局域网共享数据库」主机字段括号再精简为「主机（改末位指向局域网主机）」避免换行成两行；版本号 v1.7.4 (31)。
+<img src="docs/images/app-icon.png" alt="水螅 Resolve Backup" width="128" height="128">
 
-> **设计原则**
->
-> ：App 不预置 / 不硬编码任何数据库连接（适合分发给其他电脑使用）；启动时自动扫描
->
-> **本机**
->
-> 网络库与达芬奇本地库并加入列表；局域网库需用户手动「扫描局域网共享数据库」添加。
+# 水螅 Resolve Backup
 
+### 达芬奇 DaVinci Resolve 数据库自动备份工具
 
+**macOS 菜单栏 App · 双架构支持（Apple Silicon + Intel）**
 
-***
+[![macOS](https://img.shields.io/badge/macOS-14.0+-000000?style=flat-square&logo=apple)](https://www.apple.com/macos/)
+[![Swift](https://img.shields.io/badge/Swift-5.9-FA7343?style=flat-square&logo=swift)](https://swift.org/)
+[![Release](https://img.shields.io/github/v/release/zengdingguang/ResolveDBBackup?style=flat-square)](https://github.com/zengdingguang/ResolveDBBackup/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
 
-## 功能
+[下载安装包](https://github.com/zengdingguang/ResolveDBBackup/releases/latest) · [使用教程](#使用教程) · [功能特性](#功能特性)
 
-### 自动发现（三类，v1.1 + v1.2，v1.3 改名排序，v1.4 再改名，v1.5 第二项再改名）
+</div>
 
-连接页顶部按钮（v1.6.3 起顺序）：
+---
 
-0\. **「自动扫描数据库」**（v1.6.3 新增）：**一次同时扫描本机共享数据库 + 达芬奇本地数据库**（不扫局域网，避免长时间等待），由用户手动点击触发 ——**App 启动不再自动扫描**，避免一打开就弹钥匙串授权窗。扫描后才可能提示输入电脑密码，用户有心理准备。
+## 为什么叫"水螅"？
 
+水螅通过**出芽生殖**产生新的芽体，芽体与母体的基因完全相同——这正是数据库备份的本质：**完整克隆母体，确保数据永不丢失**。
 
+---
 
-1. **「扫描本地数据库」**：仅扫描达芬奇本地数据库（磁盘文件夹 + SQLite，读 `dblist.conf` 注册表）。
+## 功能特性
 
-2. **「扫描本机共享数据库」**：仅扫描本机 `127.0.0.1` 上的 PostgreSQL（网络）数据库。
+### 三种数据库类型，全面覆盖
 
-3. **「扫描局域网共享数据库」**：仅扫描局域网内的 PostgreSQL 数据库（默认全扫本机 /24 网段，可手动追加 IP/CIDR）。
+| 类型 | 说明 | 扫描方式 |
+|---|---|---|
+| 🖥️ **本地磁盘库** | 达芬奇本地项目库（Resolve Projects） | 自动扫描官方默认目录 + 自定义路径 |
+| 🔗 **本机共享库** | 本机 PostgreSQL 网络数据库（127.0.0.1） | 自动扫描本机 PostgreSQL 实例 |
+| 🌐 **局域网共享库** | 局域网内其他电脑的达芬奇数据库 | 自动扫描整个 /24 网段 + 手动指定 IP |
 
-* **本机网络库**（v1.1，v1.6.3 起手动触发）：扫描本机 PostgreSQL 服务（探测 `127.0.0.1` 常见端口 5432–5443，定位 `/Library/PostgreSQL/<ver>/bin` 或 Homebrew 的 psql/pg\_dump），尝试默认凭据（`postgres/DaVinci`、`postgres/postgres`、空密码），列出全部非模板数据库并自动添加为连接（各配一个默认备份任务）。「**扫描本机共享数据库**」/「**自动扫描数据库**」按钮可随时重扫并**勾选**导入；同一 `host:port/dbname` 自动去重，重名自动加后缀。
+### 智能自动扫描
 
-* **局域网网络库**（v1.2，v1.3 增强）：「**扫描局域网共享数据库**」按钮打开独立窗口，默认**全扫本机所有活跃 /24 网段**（如 `192.168.3.0/24`、`192.168.31.0/24`），也可**手动追加 IP / CIDR**。探测端口 5432/5433，凭据优先取达芬奇 `dblist.conf` 登记的网络库密码（更准）。**v1.3 起窗口内提供「停止扫描」按钮（可随时中止长时间扫描）与「关闭窗口」按钮**；扫描期间有进度指示。
+- **一键自动扫描**：同时发现本机磁盘库 + 本机共享库，无需手动配置
+- **局域网全网段扫描**：自动发现局域网内所有运行中的 PostgreSQL 数据库
+- **手动添加**：支持手动输入主机、端口、数据库名、用户名、密码
+- **默认凭据自动填充**：达芬奇默认密码 `DaVinci` 自动填入，可修改
 
-* **达芬奇本地数据库**（v1.2，v1.6.3 起手动触发）：「**扫描本地数据库**」/「**自动扫描数据库**」按钮扫描，读取达芬奇注册表 `~/Library/Preferences/Blackmagic Design/DaVinci Resolve/dblist.conf`（本地库 `DISK` 行），并以官方默认目录 `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/Resolve Project Library/` 兜底；也支持 GUI 手动选路径添加。备份 = 整文件夹 `ditto` zip 快照（保留 `Project.db`/`User.db`/`Metadata.db` 与项目文件）。
+### 全局备份机制
 
-* **手动添加（v1.5 拆三项，v1.6.3 改名）**：「**手动添加**」菜单（修复了原先 "＋" 文本与 plus 图标重复的双加号）含**添加本地数据库 / 添加本机共享数据库 / 添加局域网共享数据库**三项。**添加本机共享数据库**：主机默认 `127.0.0.1`（本机回环）；**添加局域网共享数据库**：自动获取本机网卡 IP 填入主机（提供**以太网 / Wi-Fi 网卡选择**），用户只需**修改最后一位**即可指向局域网其他主机；两者端口默认 `5432`、密码默认预填 `DaVinci`（达芬奇官方默认，客户可改 / 清空）；编辑时留空 = 不修改。
+- **间隔分钟**：自定义备份间隔（默认 10 分钟）
+- **三级保留策略**（类 Time Machine）：
+  - 最近 **24 小时内**：全部保留
+  - 超过 **24 小时**：每天保留 1 份（当天最后一份）
+  - 超过 **1 个月**：每月保留 1 份（当月最后一份）
+- **全局统一备份路径**：所有数据库备份统一管理，按数据库名分文件夹
 
-* 诊断：`--scan-local` / `--scan-localdb` / `--scan-lan <targets>` 只打印发现结果、不改动配置。
+### 安全可靠
 
-* 不预置、不硬编码任何连接；局域网库不自动扫（避免大范围网络探测），由用户手动扫描添加。
+- **Keychain 存储密码**：数据库密码存在 macOS 钥匙串，不落盘到配置文件
+- **pg_dump 自定义格式**：`--blobs` 含大对象，`pg_restore` 一键还原
+- **失败系统通知**：备份失败时右上角弹出 macOS 系统通知
+- **单库失败不阻断**：某个数据库备份失败不影响其他数据库
+- **配置自动备份**：配置 JSON 实时同步到备份根目录，换机/恢复无忧
 
-### 其他核心能力
+### 定时调度
 
+- **用户级 LaunchAgent**（SMAppService）：无需 root，开机自启
+- **菜单栏常驻**：一键立即备份全部、查看状态、打开管理面板
+- **双击即开**：App 运行中再次双击自动弹出主界面
 
+---
 
-* **全局备份机制（v1.6.6，时间机器式）**：备份任务页顶部「全局备份机制」统一设置 ——**间隔（分钟，默认 10）** + **全局备份位置**（所有库统一存到一个目录，建议外接硬盘）。不再按库单独设路径 / 间隔 / 保留；每个任务卡片仅保留启用开关、打开路径（全局根 /{连接名}）、立即备份、删除任务。
+## 系统要求
 
-* **连接管理**（v1.3 + v1.5 + v1.6）：每条连接右侧提供「**连接测试**」（原名 "测试"）、编辑、删除；测试连接走 `psql SELECT 1` 实测。**v1.4.1 修复钥匙串弹窗**：不再在启动时批量预读密码（避免一次弹出多个 "输入电脑密码" 授权窗）；新建密码条目写入时使用「允许所有应用访问」的钥匙串 ACL——**新用户 / 新添加的连接在升级后也不会再弹授权窗**。**v1.6 连接列表三分类**：本地数据库（达芬奇磁盘库）/ 本机共享数据库（PostgreSQL，指向本机）/ 局域网共享数据库（PostgreSQL，指向其他主机）。
+- **macOS 14.0 (Sonoma)** 或更高版本
+- **Apple Silicon** (M1 / M2 / M3 / M4) 或 **Intel** 处理器（双架构通用）
+- 达芬奇 DaVinci Resolve（数据库由达芬奇创建，本工具负责备份）
 
-* **历史「文件」右键**（v1.3 + v1.6）：历史表「文件」列右键「在 Finder 中显示」定位备份文件；**v1.6 起若文件 / 文件夹已被移动或删除，会弹窗明确提示**（不再无反馈）。
+---
 
-* **菜单栏下拉**（v1.5）：各库状态 +「立即备份全部」「打开管理面板」「退出」—— 已去掉「设置」（管理面板里已有设置）。
+## 安装方法
 
-* **自动 / 定时备份**：每个启用任务生成一条用户级 LaunchAgent plist（`ProgramArguments` 指向 App 的 `--run-backup <jobId>` 入口，`StartInterval` 取**全局间隔**秒数）；改间隔 / 停启用即时生效，两库错开互不干扰。
+### 方式一：直接下载（推荐）
 
-* **失败通知**：备份失败（或可选成功）发 macOS 通知；单库失败不阻断其他库。
+1. 前往 [Releases 页面](https://github.com/zengdingguang/ResolveDBBackup/releases/latest)
+2. 下载 `水螅ResolveBackup-v1.7.6-macOS.zip`
+3. 解压后将 `水螅ResolveBackup.app` 拖到「应用程序」文件夹
+4. 双击打开（首次打开可能需要右键 → 打开）
 
-* **凭据安全**：网络库密码存 Keychain（`com.resolvedbbackup.pgpass`，account = 连接 id）。本地库无密码。（v1.6.3 起移除～/.pgpass 同步开关 ——App 自动备份走钥匙串，不依赖该文件。）
+### 方式二：自行编译
 
-* **保留策略（v1.6.6，时间机器式）**：全局统一（备份任务页顶部设置）——**最近 24 小时内全部保留**；**超过 24 小时按天分组、每天只保留该天最后一份**。始终清理 0 字节损坏残留；`.backup` 与 `.zip` 都纳入清理。
-
-* **备份产物**：网络库 `{全局备份位置}/{connectionName}/{dbname}_{YYYY_MM_DD_HH_MM}.backup`；本地库 `{全局备份位置}/{connectionName}/{注册名}_{YYYY_MM_DD_HH_MM}.zip`（同分钟冲突自动追加 `_2`、`_3` 后缀防覆盖）；网络库还原用 `pg_restore`，本地库解压 zip 覆盖回原路径即可。
-
-* **历史 / 日志**：GUI 内历史表（「文件」列右键「在 Finder 中显示」，一键定位备份文件所在文件夹）+ `~/Library/Logs/ResolveDBBackup/` 下的 launchd 日志。
-
-* **开机自启**（v1.4 + v1.5）：设置里「开机自启」**默认开启**（全新安装默认开；v1.5 起对旧配置升级也默认开启，可手动关闭）。
-
-* **全局备份位置**（v1.6.5 取代 v1.5「默认备份位置」）：在「备份任务」页顶部「全局备份机制」里设置 —— 所有库统一存到一个目录（建议指向外接硬盘 / 独立磁盘，本机故障时备份仍安全），内部按连接名自动分层；配置 JSON 也自动保存到此目录。
-
-* **备份引擎**（v1.6）：设置页 pg\_dump 路径提供「**自动检测**」（扫描常见安装位置自动定位）与「**选择…**」（Finder 图形化选择文件）两种方式，普通用户无需手输路径。
-
-* **版本 / 作者 / 免责**（v1.6 + v1.6.2 + v1.6.5）：主界面底部与菜单栏显示版本号；软件命名「**水螅 ResolveBackup**」；作者署名「**调色师 zengdingguang**」（v1.6.5 起）；设置页「关于」含免责声明（v1.6.2 字号加大到正文级、更清晰）。
-
-* **图标**（v1.6.2 换、v1.6.4 回退菜单栏）：App 图标为达芬奇关联设计（黑底彩虹渐变边框 + 三层数据库柱 + 白色环形同步箭头；v1.6.4 替换为用户上传黑白剪影、去水印）；菜单栏图标 v1.6.4 回退为 v1.6.1 默认磁盘黑白线稿（SF Symbol `externaldrive.badge.checkmark`，模板自适应明暗）。
-
-* **配置导入 / 导出**：设置页 JSON 导出 / 导入；**v1.5 起配置 JSON 自动实时保存**到全局备份根目录下的 `ResolveDBBackup-config.json`（每次改动配置自动更新，方便换机 / 恢复；v1.6.5 起全局备份位置恒有兜底目录，始终写入）。
-
-* **配置迁移安全**（v1.2 修复）：旧版配置（缺 `schemaVersion`/`kind`/`localPath` 等字段）解码容错；配置文件存在但解码失败时**不再覆盖原文件**，避免升级时误清空连接与任务。
-
-## 目录结构
-
-
-
-```
-ResolveDBBackup/
-
-├── Package.swift                      # SwiftPM 定义（Core 库 + App 可执行 + 自测运行器）
-
-├── project.yml                        # 可选：XcodeGen 生成 .xcodeproj
-
-├── Scripts/make-app.sh                # 打包 .app（build release → 组装 bundle → ad-hoc 签名）
-
-├── Sources/
-
-│   ├── ResolveDBBackupCore/           # 全部逻辑（模型/服务/视图/CLI）
-
-│   └── ResolveDBBackup/main.swift     # 双入口：--run-backup CLI 或 GUI
-
-├── Tests/
-
-│   └── ResolveDBBackupSelfTests/      # 单元测试运行器（不依赖 XCTest，CLT 可跑）
-
-└── Tests-XCTest/                      # 可选：XCTest 版单测（供有完整 Xcode 的环境）
+```bash
+git clone https://github.com/zengdingguang/ResolveDBBackup.git
+cd ResolveDBBackup
+swift build
+.build/debug/ResolveDBBackup
 ```
 
-## 构建与运行
+---
 
-本机仅有 Command Line Tools（无完整 Xcode），因此工程采用 SwiftPM 结构：
+## 使用教程
 
+### 第一步：扫描数据库
 
+1. 打开 App，进入「连接」页面
+2. 点击 **「自动扫描数据库」**——同时发现本机磁盘库 + 本机共享库
+3. 如需备份局域网其他电脑的数据库，点击 **「扫描局域网数据库」**
+4. 勾选要备份的数据库，点击「添加所选」
 
-```
-\# 1. 构建（debug / release）
+### 第二步：配置备份任务
 
-swift build -c release
+1. 进入「备份任务」页面
+2. 设置**全局备份位置**（建议选择外接硬盘，确保数据安全）
+3. 设置**备份间隔**（分钟，默认 10 分钟）
+4. 点击「保存设置」
+5. 为每个数据库启用备份任务（开关打开）
 
-\# 2. 单元测试（92 项断言，命令拼装/保留策略/配置序列化/冲突命名/0字节清理/自动发现导入/dblist 解析/局域网 IP 展开/本地库快照/旧配置迁移）
+### 第三步：开始备份
 
-swift run ResolveDBBackupSelfTests
+- 点击「立即备份全部」手动触发一次备份
+- 之后 App 会按设定的间隔自动备份
+- 菜单栏图标可随时查看备份状态、触发立即备份
 
-\# 3. 打包菜单栏 .app
+### 第四步：还原数据库
 
-./Scripts/make-app.sh
+备份文件为 pg_dump 自定义格式（`.backup`），使用 `pg_restore` 还原：
 
-open dist/ResolveDBBackup.app
-```
-
-有完整 Xcode 的环境：直接 `open Package.swift` 运行，或 `brew install xcodegen && xcodegen generate` 生成 `.xcodeproj`（XCTest 单测在 `Tests-XCTest/`）。
-
-## CLI 入口
-
-
-
-```
-\# 首次初始化：空配置 + 自动扫描本机数据库并添加（含默认任务）（GUI 首启也会自动做）
-
-ResolveDBBackup --seed-config
-
-\# 只扫描并打印本机发现的数据库，不改动配置
-
-ResolveDBBackup --scan-local
-
-\# 只扫描并打印达芬奇本地数据库（读 dblist.conf + 默认目录），不改动配置
-
-ResolveDBBackup --scan-localdb
-
-\# 只扫描并打印局域网数据库（可传 IP 或 CIDR，逗号分隔），不改动配置
-
-ResolveDBBackup --scan-lan 192.168.3.99,192.168.3.0/24
-
-\# 扫描局域网并把结果导入配置（含默认任务），便于 headless 恢复/分发
-
-ResolveDBBackup --scan-lan-import 192.168.3.99
-
-\# 为所有缺任务的连接补齐默认任务（幂等修复）
-
-ResolveDBBackup --ensure-jobs
-
-\# 对某任务立即执行一次备份（LaunchAgent 定时触发即走此入口）
-
-ResolveDBBackup --run-backup \<jobId>
+```bash
+pg_restore --host=127.0.0.1 --port=5432 --username=postgres \
+  --dbname=目标数据库名 --no-password 备份文件.backup
 ```
 
+---
 
-
-* 无 bundle 的裸二进制调用 `--run-backup` 时不会发通知（避免 `UNUserNotificationCenter` 崩溃）；从 `.app` 内触发时正常通知。
-
-* 配置 / 历史位于 `~/Library/Application Support/ResolveDBBackup/`（`config.json` / `history.json`）。
-
-## 调度机制
-
-
-
-* **任务级**：每个启用任务 → `~/Library/LaunchAgents/com.resolvedbbackup.job.<jobId>.plist`（`StartInterval` = 任务间隔，`ProgramArguments` = 本 App `--run-backup <jobId>`）。加载 / 卸载用 `launchctl bootstrap/bootout gui/<uid>`，无需 root。
-
-* **开机自启**：优先 `SMAppService.mainApp`（App 需在 `/Applications`）；失败时回退为自定义登录 LaunchAgent（`RunAtLoad` 拉起 App）。
-
-* App 启动时自动同步所有任务调度；GUI 改动（增删 / 改间隔 / 启停）即时同步。
-
-* 注意：launchd 的 `StartInterval` 在睡眠期间可能错过触发点（唤醒后按间隔续跑）；如需严格 "补跑"，后续可加 `StartCalendarInterval` 或应用内 Timer 兜底。
-
-## 备份与还原
-
-
+## 备份输出结构
 
 ```
-\# 备份（App 内部调用，等价）
-
-pg\_dump -h \<host> -p \<port> -U \<user> -d \<db> --blobs --format=custom --no-password \\
-
-&#x20;       \--file "\<backupPath>/\<connName>/\<db>\_\<ts>.backup"
-
-\# 查看内容
-
-pg\_restore --list "\<file>.backup"
-
-\# 还原到新库
-
-createdb -h \<host> -U \<user> \<newdb>
-
-pg\_restore -h \<host> -U \<user> -d \<newdb> "\<file>.backup"
+备份根目录/
+├── 数据库名1/
+│   ├── 数据库名1_2026_09_06_10_00.backup
+│   ├── 数据库名1_2026_09_06_10_10.backup
+│   └── ...
+├── 数据库名2/
+│   └── ...
+└── ResolveDBBackup-config.json  （配置自动备份）
 ```
 
-## 测试结果（本机实测，2026-09-04）
-
-
-
-| 项目                       | 结果                                                                                                           |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| 单元测试（自测运行器）              | 92/92 通过                                                                                                     |
-| 自动发现本机网络库                | ✅ 扫描出全部 10 个非模板库（24/25/777/789/88888/999/99999/cee/dingguang/resolve\_project\_server\_config，重复扫描 10/10 稳定） |
-| 自动发现达芬奇本地库               | ✅ 解析 dblist.conf `DISK` 行 + 默认目录，发现 `Resolve Project Library`（13 个项目，SQLite）                                 |
-| 局域网扫描（真机 /24 全扫）         | ✅ `192.168.3.0/24` 全扫约 78s，发现 192.168.3.99 上 2 个库（2025X /resolve\_project\_server\_config）；单 IP/CIDR 手动追加均可用 |
-| 本地 `dingguang` 真实备份      | ✅ 575KB，`pg_restore --list` 可读（1092 TOC，CUSTOM）                                                              |
-| 局域网 `2025X` 真实备份         | ✅ 163MB，约 20s（对方机器在线时）                                                                                       |
-| **达芬奇本地库 zip 备份**        | ✅ 整目录 `ditto` 快照 22MB，`unzip -t` 校验无错误，保留 User.db/Project.db/Metadata.db                                     |
-| 保留策略（v1.4 份数机制）          | ✅ 每库保留最近 N 份（默认 100、0 = 不限）；0 字节残留清理（单测覆盖 `.backup`+`.zip`）                                                  |
-| 同分钟冲突命名                  | ✅ `_2`/`_3` 后缀，不覆盖                                                                                           |
-| 0 字节残留清理                 | ✅ 自动清除                                                                                                       |
-| 失败路径（pg\_dump 缺失 / 连接被拒） | ✅ 干净失败 exit 1，记录历史，无文件残留，不阻断他库                                                                               |
-| LaunchAgent 调度           | ✅ bootstrap → launchd 拉起 `--run-backup` → 备份成功 → exit 0；本地库 / 局域网任务 plist 均已生成                               |
-| GUI 启动                   | ✅ 菜单栏 App 正常启动，自动同步任务 LaunchAgent                                                                            |
-| 配置迁移（v1.1→v1.2）          | ✅ 旧配置缺字段容错解码；解码失败不覆盖原文件（修复了升级误清空连接的问题）                                                                       |
-
-> 备注：
->
-> `192.168.3.99`
->
->  在测试初期 
->
-> `nc`
->
->  探测不可达（对方机器未上线），后续实际备份成功 —— 以 
->
-> `pg_dump`
->
->  结果为准；
->
-> `PGCONNECT_TIMEOUT=10`
->
->  为冷机连接兜底。
+---
 
 ## 常见问题
 
+**Q：为什么需要输入电脑密码？**
+A：首次访问钥匙串中的数据库密码时，macOS 会要求授权。点击「始终允许」后后续不再提示。
 
+**Q：备份文件存在哪里？**
+A：默认在 `~/DaVinci Database Auto Backup/`，可在设置中自定义，**强烈建议选择外接硬盘**。
 
-* **扫描不到数据库**：确认本机 PostgreSQL 服务已启动（DaVinci/EDB 服务在线）、监听 `127.0.0.1` 的 5432 等端口；若 psql 装在非默认路径，先在设置页改 `pg_dump` 路径再重扫。局域网库默认自动全扫 /24 网段（也可手动填 IP/CIDR）；达芬奇本地库需先在该台电脑上用达芬奇创建过 "本地数据库"（默认在 `Resolve Project Library` 目录）。
+**Q：支持哪些达芬奇版本？**
+A：支持所有使用 PostgreSQL 网络数据库的达芬奇版本，以及本地磁盘库。
 
-* **局域网全扫很慢 / 没结果**：全扫 254 主机约 1 分钟级别属正常（每台超时探测）；可直接在「扫描局域网」手动追加目标 IP/CIDR 加速。若目标库在本机网卡的另一网段（如 VPN / 多网卡），App 会自动列出所有活跃 /24 网段。
+**Q：会备份项目文件 (.drp) 吗？**
+A：项目数据包含在 PostgreSQL 数据库中，pg_dump 会完整转储。
 
-* **备份失败 "no password supplied"**：Keychain 无密码条目。在 "连接" 里编辑填入密码（添加时默认已预填 `DaVinci`），或勾选设置里 "同步到～/.pgpass"。
+---
 
-* **pg\_dump 路径错误**：设置页可覆盖默认 `/Library/PostgreSQL/13/bin/pg_dump`；psql/pg\_restore 取同目录。
+## 免责声明
 
-* **通知不弹**：系统设置 → 通知里允许 ResolveDBBackup；从 `.app` 启动才会请求权限。
+本软件按"现状"提供，不提供任何明示或暗示的担保。使用者应自行验证备份数据的完整性与可恢复性。因使用本软件造成的任何数据损失，作者不承担责任。
 
-* **调度不生效**：确认任务 "启用" 开关打开；改路径后 App 会重建 LaunchAgent；App 需从 `.app` 运行（`ProgramArguments` 记录其绝对路径，移动 App 后需重启一次 App 以刷新）。
+**重要**：备份完成后，请定期使用 `pg_restore --list` 校验备份文件，并在测试环境中验证还原流程。
+
+---
+
+## 作者
+
+**调色师 zengdingguang（曾定光）**
+
+- 职业：电影视频广告调色师
+- 反馈邮箱：[402481025@qq.com](mailto:402481025@qq.com)
+
+如果这个软件对你有帮助，欢迎请作者喝杯咖啡 ☕
+
+<div align="center">
+<img src="docs/images/donation-qr.png" alt="打赏二维码" width="180">
+<p>别等数据库炸了才想起我。扫码赏点，让我有电继续给你站岗。</p>
+</div>
+
+---
+
+## 许可证
+
+[MIT License](LICENSE)
+
+---
+
+<div align="center">
+
+**水螅 Resolve Backup** · 让你的达芬奇数据库永远有备份
+
+[⬇️ 下载最新版](https://github.com/zengdingguang/ResolveDBBackup/releases/latest) · [⭐ 点个 Star](https://github.com/zengdingguang/ResolveDBBackup) · [🐛 反馈问题](https://github.com/zengdingguang/ResolveDBBackup/issues)
+
+</div>
