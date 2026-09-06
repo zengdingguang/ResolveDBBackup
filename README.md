@@ -19,8 +19,9 @@
 
 ---
 
-> 📢 **获取最新版本**：关注微信公众号文章，获取最新版本下载、使用教程和更新动态：
-> [达芬奇数据库·超强自动备份工具·水螅ResolveBackup](https://mp.weixin.qq.com/s/NUUNiO0jFw9szWz-eibvvw)
+## 📢 关注公众号文章，获取 APP 最新版本下载
+
+**[达芬奇数据库·超强自动备份工具·水螅ResolveBackup](https://mp.weixin.qq.com/s/NUUNiO0jFw9szWz-eibvvw)**
 
 ## 为什么叫"水螅"？
 
