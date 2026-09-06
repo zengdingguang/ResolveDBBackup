@@ -1,0 +1,32 @@
+# Swift / Xcode
+.build/
+.build-arch/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.swiftmodule
+*.swiftdoc
+
+# 构建产物
+dist/
+*.app
+*.dSYM
+
+# 版本快照（本地备份，不入库）
+backups/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*~
+
+# 临时
+/tmp/
+*.log

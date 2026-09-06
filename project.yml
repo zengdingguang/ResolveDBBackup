@@ -1,0 +1,55 @@
+# XcodeGen 配置（可选）：如需生成标准 .xcodeproj，安装 xcodegen 后执行 `xcodegen generate`。
+# 说明：本机未安装完整 Xcode 时，用 `swift build` 构建、`swift run ResolveDBBackupSelfTests` 跑单元测试；
+# Xcode 也可直接打开 Package.swift。XCTest 版单测放在 Tests-XCTest/ 供有 Xcode 的环境使用。
+name: ResolveDBBackup
+options:
+  bundleIdPrefix: com.resolvedbbackup
+  deploymentTarget:
+    macOS: "14.0"
+targets:
+  ResolveDBBackupCore:
+    type: framework
+    platform: macOS
+    sources:
+      - Sources/ResolveDBBackupCore
+  ResolveDBBackup:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/ResolveDBBackup
+    dependencies:
+      - target: ResolveDBBackupCore
+    info:
+      path: dist/Info.plist
+      properties:
+        CFBundleIdentifier: com.resolvedbbackup.app
+        CFBundleName: ResolveDBBackup
+        CFBundleDisplayName: ResolveDBBackup
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "14.0"
+        LSUIElement: true
+        NSHighResolutionCapable: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.resolvedbbackup.app
+        CODE_SIGN_IDENTITY: "-"
+        SWIFT_VERSION: "5.9"
+        ENABLE_HARDENED_RUNTIME: false
+  ResolveDBBackupTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests-XCTest
+    dependencies:
+      - target: ResolveDBBackupCore
+schemes:
+  ResolveDBBackup:
+    build:
+      targets:
+        ResolveDBBackup: all
+        ResolveDBBackupCore: all
+        ResolveDBBackupTests: [test]
+    test:
+      targets:
+        - ResolveDBBackupTests
