@@ -170,7 +170,7 @@ A：项目数据包含在 PostgreSQL 数据库中，pg_dump 会完整转储。
 
 ## 作者
 
-**调色师 zengdingguang（曾定光）**
+**调色师 zengdingguang**
 
 - 职业：电影视频广告调色师
 - 反馈邮箱：[402481025@qq.com](mailto:402481025@qq.com)
