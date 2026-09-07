@@ -71,6 +71,20 @@
 
 ---
 
+## 界面预览
+
+<p align="center">
+  <img src="docs/images/screenshot-connections.png" width="32%" alt="连接管理" />
+  <img src="docs/images/screenshot-backup.png" width="32%" alt="备份任务" />
+  <img src="docs/images/screenshot-history.png" width="32%" alt="备份历史" />
+</p>
+
+| 连接管理 | 备份任务 | 备份历史 |
+|---|---|---|
+| 自动扫描本地磁盘库 / 本机共享库 / 局域网库，一键添加 | 全局备份机制（间隔分钟 + 三级保留策略），每库独立启用 | 500 条备份记录，状态 / 大小 / 耗时 / 文件路径一目了然 |
+
+---
+
 ## 系统要求
 
 - **macOS 14.0 (Sonoma)** 或更高版本
